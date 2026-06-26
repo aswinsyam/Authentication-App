@@ -3,8 +3,9 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 interface RegisterResponse {
-  message: string;
-  id: string;
+  message?: string;
+  id?: string;
+  error?: string;
 }
 
 function Register() {
@@ -28,17 +29,22 @@ function Register() {
         }
       );
 
-      console.log(response.data);
-
-      alert("Registration Successful");
+      alert(response.data.message || "Registration Successful");
 
       navigate("/");
 
-    } catch (error) {
+    } catch (error: any) {
 
       console.log(error);
 
-      alert("Registration Failed");
+      if (axios.isAxiosError(error) && error.response?.data?.error) {
+
+        alert(error.response.data.error);
+
+      } else {
+
+        alert("Registration Failed");
+      }
     }
   };
 
@@ -47,7 +53,11 @@ function Register() {
 
       <h1>Register Page</h1>
 
+      <label htmlFor="username">Username</label>
+      <br />
+
       <input
+        id="username"
         type="text"
         placeholder="Enter Username"
         value={username}
@@ -58,7 +68,11 @@ function Register() {
 
       <br /><br />
 
+      <label htmlFor="email">Email</label>
+      <br />
+
       <input
+        id="email"
         type="email"
         placeholder="Enter Email"
         value={email}
@@ -69,7 +83,11 @@ function Register() {
 
       <br /><br />
 
+      <label htmlFor="password">Password</label>
+      <br />
+
       <input
+        id="password"
         type="password"
         placeholder="Enter Password"
         value={password}

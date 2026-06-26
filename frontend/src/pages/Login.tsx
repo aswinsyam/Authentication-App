@@ -44,21 +44,26 @@ function Login() {
         data.username
       );
 
+      localStorage.setItem(
+        "email",
+        email
+      );
+
       setUser(data.username);
 
       alert("Login Successful");
 
-      localStorage.setItem(
-      "email",email
-      );
-
       navigate("/dashboard");
 
-    } catch (error) {
+    } catch (error: any) {
 
       console.log(error);
 
-      alert("Login Failed");
+      if (error.response?.data?.error) {
+        alert(error.response.data.error);
+      } else {
+        alert("Something went wrong");
+      }
     }
   };
 
@@ -67,7 +72,14 @@ function Login() {
 
       <h1>Login Page</h1>
 
+      <label htmlFor="email">
+        Email
+      </label>
+
+      <br />
+
       <input
+        id="email"
         type="email"
         placeholder="Enter Email"
         value={email}
@@ -78,7 +90,14 @@ function Login() {
 
       <br /><br />
 
+      <label htmlFor="password">
+        Password
+      </label>
+
+      <br />
+
       <input
+        id="password"
         type="password"
         placeholder="Enter Password"
         value={password}

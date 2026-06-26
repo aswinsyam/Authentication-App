@@ -1,5 +1,7 @@
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { AuthContext } from "../context/AuthContext";
 
 interface ApiResponse {
   message: string;
@@ -12,11 +14,16 @@ function EditProfile() {
   const [newEmail, setNewEmail] = useState<string>("");
   const [image, setImage] = useState<File | null>(null);
 
+  const navigate = useNavigate();
+
+  const { setUser } = useContext(AuthContext);
+
   const handleUpdate = async (): Promise<void> => {
 
     try {
 
-      const response = await axios.put<ApiResponse>(
+      // Update Username & Email
+      await axios.put<ApiResponse>(
         "http://127.0.0.1:8000/update-profile/",
         {
           email,
@@ -25,42 +32,54 @@ function EditProfile() {
         }
       );
 
-      alert(response.data.message);
+      // Upload Image (if selected)
+      if (image) {
+
+        const formData = new FormData();
+
+        formData.append("email", email);
+        formData.append("image", image);
+
+        await axios.post<ApiResponse>(
+          "http://127.0.0.1:8000/upload-profile-image/",
+          formData
+        );
+      }
+
+      // Email Changed -> Logout
+      if (newEmail && newEmail !== email) {
+
+        alert("Email updated successfully. Please login again.");
+
+        localStorage.clear();
+
+        setUser("");
+
+        navigate("/");
+
+        return;
+      }
+
+      // Username Changed
+      if (username) {
+
+        localStorage.setItem(
+          "username",
+          username
+        );
+
+        setUser(username);
+      }
+
+      alert("Profile Updated Successfully");
+
+      navigate("/dashboard");
 
     } catch (error) {
 
       console.log(error);
 
       alert("Update Failed");
-    }
-  };
-
-  const uploadImage = async (): Promise<void> => {
-
-    try {
-
-      if (!image) {
-        alert("Please select an image");
-        return;
-      }
-
-      const formData = new FormData();
-
-      formData.append("email", email);
-      formData.append("image", image);
-
-      const response = await axios.post<ApiResponse>(
-        "http://127.0.0.1:8000/upload-profile-image/",
-        formData
-      );
-
-      alert(response.data.message);
-
-    } catch (error) {
-
-      console.log(error);
-
-      alert("Image Upload Failed");
     }
   };
 
@@ -132,16 +151,11 @@ function EditProfile() {
       <input
         id="profileImage"
         type="file"
+        accept="image/*"
         onChange={(e: ChangeEvent<HTMLInputElement>) =>
           setImage(e.target.files?.[0] || null)
         }
       />
-
-      <br /><br />
-
-      <button onClick={uploadImage}>
-        Upload Image
-      </button>
 
       <br /><br />
 
