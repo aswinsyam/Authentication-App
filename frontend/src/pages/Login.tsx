@@ -44,10 +44,8 @@ function Login() {
         data.username
       );
 
-      localStorage.setItem(
-        "email",
-        email
-      );
+      // Email is no longer stored.
+      // The backend identifies the user using the JWT token.
 
       setUser(data.username);
 
@@ -59,9 +57,15 @@ function Login() {
 
       console.log(error);
 
-      if (error.response?.data?.error) {
-        alert(error.response.data.error);
+      if (axios.isAxiosError(error)) {
+
+        alert(
+          error.response?.data?.error ||
+          "Login Failed"
+        );
+
       } else {
+
         alert("Something went wrong");
       }
     }

@@ -2,58 +2,110 @@ import { useState, ChangeEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
-interface RegisterResponse {
+interface ApiResponse {
   message?: string;
-  id?: string;
   error?: string;
 }
 
 function Register() {
 
-  const [username, setUsername] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-
   const navigate = useNavigate();
 
-  const handleRegister = async (): Promise<void> => {
+  const [username, setUsername] = useState("");
+
+  const [email, setEmail] = useState("");
+
+  const [password, setPassword] = useState("");
+
+  const [image, setImage] = useState<File | null>(null);
+
+  const [preview, setPreview] = useState("");
+
+
+
+  const handleImage = (e: ChangeEvent<HTMLInputElement>) => {
+
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    setImage(file);
+
+    setPreview(URL.createObjectURL(file));
+
+  };
+
+
+
+  const handleRegister = async () => {
 
     try {
 
-      const response = await axios.post<RegisterResponse>(
+      const formData = new FormData();
+
+      formData.append("username", username);
+
+      formData.append("email", email);
+
+      formData.append("password", password);
+
+      if (image) {
+
+        formData.append("image", image);
+
+      }
+
+      const response = await axios.post<ApiResponse>(
         "http://127.0.0.1:8000/register/",
+        formData,
         {
-          username,
-          email,
-          password
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
 
-      alert(response.data.message || "Registration Successful");
+      alert(response.data.message);
 
       navigate("/");
 
-    } catch (error: any) {
+    }
+
+    catch (error: any) {
 
       console.log(error);
 
-      if (axios.isAxiosError(error) && error.response?.data?.error) {
+      if (axios.isAxiosError(error)) {
 
-        alert(error.response.data.error);
+        alert(
+          error.response?.data?.error ||
+          "Registration Failed"
+        );
 
-      } else {
-
-        alert("Registration Failed");
       }
+
+      else {
+
+        alert("Something went wrong");
+
+      }
+
     }
+
   };
 
+
+
   return (
+
     <div>
 
-      <h1>Register Page</h1>
+      <h1>Register</h1>
 
-      <label htmlFor="username">Username</label>
+      <label htmlFor="username">
+        Username
+      </label>
+
       <br />
 
       <input
@@ -61,14 +113,15 @@ function Register() {
         type="text"
         placeholder="Enter Username"
         value={username}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setUsername(e.target.value)
-        }
+        onChange={(e) => setUsername(e.target.value)}
       />
 
       <br /><br />
 
-      <label htmlFor="email">Email</label>
+      <label htmlFor="email">
+        Email
+      </label>
+
       <br />
 
       <input
@@ -76,14 +129,15 @@ function Register() {
         type="email"
         placeholder="Enter Email"
         value={email}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setEmail(e.target.value)
-        }
+        onChange={(e) => setEmail(e.target.value)}
       />
 
       <br /><br />
 
-      <label htmlFor="password">Password</label>
+      <label htmlFor="password">
+        Password
+      </label>
+
       <br />
 
       <input
@@ -91,10 +145,40 @@ function Register() {
         type="password"
         placeholder="Enter Password"
         value={password}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setPassword(e.target.value)
-        }
+        onChange={(e) => setPassword(e.target.value)}
       />
+
+      <br /><br />
+
+      <label htmlFor="image">
+        Profile Image (Optional)
+      </label>
+
+      <br />
+
+      <input
+        id="image"
+        type="file"
+        accept="image/*"
+        onChange={handleImage}
+      />
+
+      <br /><br />
+
+      {preview && (
+
+        <img
+          src={preview}
+          alt="Preview"
+          width="150"
+          height="150"
+          style={{
+            borderRadius: "50%",
+            objectFit: "cover"
+          }}
+        />
+
+      )}
 
       <br /><br />
 
@@ -103,12 +187,19 @@ function Register() {
       </button>
 
       <p>
+
         Already have an account?
-        <Link to="/"> Login</Link>
+
+        <Link to="/">
+          {" "}Login
+        </Link>
+
       </p>
 
     </div>
+
   );
+
 }
 
 export default Register;
